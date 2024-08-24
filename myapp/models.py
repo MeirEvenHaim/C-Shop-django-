@@ -57,9 +57,14 @@ class Cart(models.Model):
         self.total_price = total
 
     def save(self, *args, **kwargs):
-        # Ensure total price is updated before saving
+        # Save the cart first to ensure it has an ID
+        if not self.pk:
+            super().save(*args, **kwargs)
+        
+        # Calculate the total price after the cart has been saved and has an ID
         self.calculate_total_price()
         super().save(*args, **kwargs)
+
         
 # Shop model
 class Shop(models.Model):

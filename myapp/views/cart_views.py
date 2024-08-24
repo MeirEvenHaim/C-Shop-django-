@@ -10,17 +10,17 @@ from rest_framework.permissions import IsAuthenticated
 
 @api_view(['POST'])
 def create_cart(request):
+    print("Received data:", request.data)  # Log the received data
     serializer = CartSerializer(data=request.data)
     if serializer.is_valid():
-        # Save the Cart instance first
         cart = serializer.save(user=request.user)
-        # Handle ManyToManyField separately
         parts = request.data.get('parts', [])
         if parts:
             cart.parts.set(parts)
-        cart.save()  # Save again to ensure the parts are set
+        cart.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class CartViewSet(viewsets.ModelViewSet):
@@ -33,12 +33,14 @@ class CartViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # Save the Cart instance first
+        # Save the Cart instance first, ensuring it has an ID
         cart = serializer.save(user=self.request.user)
         # Handle ManyToManyField separately
         parts = request.data.get('parts', [])
         if parts:
             cart.parts.set(parts)
+        # Save again to ensure the total price is updated
+        cart.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -52,4 +54,7 @@ class CartViewSet(viewsets.ModelViewSet):
         parts = request.data.get('parts', [])
         if parts:
             instance.parts.set(parts)
+        # Ensure the total price is recalculated and saved
+        instance.save()
         return Response(serializer.data)
+
