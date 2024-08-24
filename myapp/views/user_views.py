@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from myapp.serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
+from myapp.models import Cart
 @api_view(['POST'])
 def register_user(request):
     serializer = UserSerializer(data=request.data)
@@ -36,16 +36,20 @@ def register_user(request):
 def login_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
-    
+
     user = authenticate(username=username, password=password)
-    
+
     if user is not None and user.is_active:
         refresh = RefreshToken.for_user(user)
+
+        # Ensure the user has a cart
+        Cart.objects.get_or_create(user=user)
+
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         })
-    
+
     return Response({'error': 'Invalid credentials or inactive account'}, status=status.HTTP_401_UNAUTHORIZED)
 
 # Retrieve all users (Admin-only access)

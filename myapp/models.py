@@ -48,9 +48,9 @@ class Game(models.Model):
 
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    parts = models.ManyToManyField(Part, related_name='carts')
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    date_of_payment = models.DateTimeField(null=True, blank=True)
+    parts = models.ManyToManyField(Part)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    date_of_payment = models.DateTimeField(auto_now_add=True)
 
     def calculate_total_price(self):
         total = sum(part.price for part in self.parts.all())

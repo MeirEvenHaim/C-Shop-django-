@@ -29,6 +29,9 @@ class CartViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -42,7 +45,12 @@ class CartViewSet(viewsets.ModelViewSet):
         # Save again to ensure the total price is updated
         cart.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        parts = self.request.data.get('parts', [])
+        if parts:
+            instance.parts.set(parts)
+        instance.save()
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
