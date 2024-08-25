@@ -7,28 +7,30 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from myapp.serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from myapp.models import Cart
+from myapp.models import Cart, Part
+
+
 @api_view(['POST'])
 def register_user(request):
     serializer = UserSerializer(data=request.data)
-    
+
     if serializer.is_valid():
         # Extract validated data
         validated_data = serializer.validated_data
-        
+
         # Create a new user instance
         user = User(
             username=validated_data['username'],
         )
-        
+
         # Set the password
         user.set_password(validated_data['password'])
-        
+
         # Save the user
         user.save()
-        
+
         return Response({'id': user.id, 'username': user.username}, status=status.HTTP_201_CREATED)
-    
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -42,8 +44,13 @@ def login_user(request):
     if user is not None and user.is_active:
         refresh = RefreshToken.for_user(user)
 
-        # Ensure the user has a cart
-        Cart.objects.get_or_create(user=user)
+        # get_or_create can throw an exception, we should handle it
+        # and display information to the user
+        try:
+            p, _ = Cart.objects.get_or_create(user=user)
+        except Exception as e:
+            print(f"EXCEPTION:\n{e}\n")
+            return Response(data={'error': "problem"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR, exception=True)
 
         return Response({
             'refresh': str(refresh),
@@ -51,6 +58,7 @@ def login_user(request):
         })
 
     return Response({'error': 'Invalid credentials or inactive account'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 # Retrieve all users (Admin-only access)
 @api_view(['GET'])
@@ -60,6 +68,7 @@ def list_all_users(request):
     serializer = UserSerializer(users, many=True)
     return Response(serializer.data)
 
+
 # Retrieve the logged-in user's profile
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -68,8 +77,9 @@ def user_profile(request):
     serializer = UserSerializer(user)
     return Response(serializer.data)
 
+
 @api_view(['PUT', 'PATCH'])
-@permission_classes([IsAuthenticated]) # type: ignore
+@permission_classes([IsAuthenticated])  # type: ignore
 def update_user_profile(request, id=None):
     # If an id is provided, check if the user is an admin
     if id:
@@ -84,7 +94,7 @@ def update_user_profile(request, id=None):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

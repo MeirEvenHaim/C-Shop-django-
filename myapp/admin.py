@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Computer, Part, Game, Cart, Shop
 
+
 @admin.register(Computer)
 class ComputerAdmin(admin.ModelAdmin):
     list_display = ('name', 'year_of_creation', 'user', 'date_of_sell', 'supplier', 'firm', 'price')
@@ -15,7 +16,7 @@ class PartAdmin(admin.ModelAdmin):
     search_fields = ('name', 'firm')
     list_filter = ('firm', 'date_of_creation', 'date_of_sale')
     date_hierarchy = 'date_of_creation'
-     # For many-to-many relationships like computers
+    # For many-to-many relationships like computers
 
 
 @admin.register(Game)
@@ -38,4 +39,5 @@ class CartAdmin(admin.ModelAdmin):
 class ShopAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'total_users', 'total_sales', 'total_parts_in_stock', 'created_at', 'updated_at')
     search_fields = ('name', 'address')
-    readonly_fields = ('total_sales', 'total_users', 'total_parts_in_stock', 'created_at', 'updated_at')  # Read-only fields for calculated data
+    readonly_fields = ('total_sales', 'total_users', 'total_parts_in_stock', 'created_at',
+                       'updated_at')  # Read-only fields for calculated data

@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# Each class should be in a separate file
+
+# Consider add default behaviour such as null=True
+# for columns that are not needed on creation
+
+
 # Computer model
 class Computer(models.Model):
     name = models.CharField(max_length=255)
@@ -19,6 +25,7 @@ class Computer(models.Model):
     def __str__(self):
         return self.name
 
+
 # Part model
 class Part(models.Model):
     name = models.CharField(max_length=255)
@@ -33,6 +40,7 @@ class Part(models.Model):
     def __str__(self):
         return self.name
 
+
 # Game model
 class Game(models.Model):
     name = models.CharField(max_length=255)
@@ -46,8 +54,9 @@ class Game(models.Model):
     def __str__(self):
         return self.name
 
+
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
     parts = models.ManyToManyField(Part)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     date_of_payment = models.DateTimeField(auto_now_add=True)
@@ -56,16 +65,17 @@ class Cart(models.Model):
         total = sum(part.price for part in self.parts.all())
         self.total_price = total
 
-    def save(self, *args, **kwargs):
-        # Save the cart first to ensure it has an ID
-        if not self.pk:
-            super().save(*args, **kwargs)
-        
-        # Calculate the total price after the cart has been saved and has an ID
-        self.calculate_total_price()
-        super().save(*args, **kwargs)
+    # This overrides the default save, not necessary
+    # def save(self, *args, **kwargs):
+    #     # Save the cart first to ensure it has an ID
+    #     if not self.pk:
+    #         super().save(*args, **kwargs)
+    #
+    #     # Calculate the total price after the cart has been saved and has an ID
+    #     self.calculate_total_price()
+    #     super().save(*args, **kwargs)
 
-        
+
 # Shop model
 class Shop(models.Model):
     name = models.CharField(max_length=255)
